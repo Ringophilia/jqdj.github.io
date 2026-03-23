@@ -75,12 +75,6 @@
         el.style.display = "none";
     }
 
-    function sanitize(str) {
-        var div = document.createElement("div");
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
     // ========== GitHub API ==========
     function ghFetch(endpoint, options) {
         options = options || {};
@@ -187,11 +181,22 @@
         document.getElementById("admin-view").classList.remove("hidden");
 
         // 显示用户信息
-        var userHtml =
-            '<img src="' + sanitize(state.user.avatar_url) + '" alt="avatar">' +
-            '<div><div class="name">' + sanitize(state.user.login) + '</div>' +
-            '<div class="role">管理员</div></div>';
-        document.getElementById("user-info").innerHTML = userHtml;
+        var userInfoEl = document.getElementById("user-info");
+        userInfoEl.textContent = "";
+        var avatar = document.createElement("img");
+        avatar.src = state.user.avatar_url;
+        avatar.alt = "avatar";
+        var infoDiv = document.createElement("div");
+        var nameDiv = document.createElement("div");
+        nameDiv.className = "name";
+        nameDiv.textContent = state.user.login;
+        var roleDiv = document.createElement("div");
+        roleDiv.className = "role";
+        roleDiv.textContent = "管理员";
+        infoDiv.appendChild(nameDiv);
+        infoDiv.appendChild(roleDiv);
+        userInfoEl.appendChild(avatar);
+        userInfoEl.appendChild(infoDiv);
 
         // 会话倒计时
         startSessionTimer();
@@ -222,7 +227,11 @@
         ghFetch("/repos/" + state.repo + "/contents/" + QR_PATH)
             .then(function (res) {
                 if (res.status === 404) {
-                    container.innerHTML = '<p style="color:#666;font-size:13px;">暂无二维码，请上传</p>';
+                    container.textContent = "";
+                    var noQr = document.createElement("p");
+                    noQr.style.cssText = "color:#c9a0b0;font-size:13px;";
+                    noQr.textContent = "暂无二维码，请上传";
+                    container.appendChild(noQr);
                     state.existingSha = null;
                     return null;
                 }
@@ -231,12 +240,22 @@
             .then(function (data) {
                 if (!data) return;
                 state.existingSha = data.sha;
-                container.innerHTML =
-                    '<img src="data:image/png;base64,' + data.content.replace(/\n/g, "") + '" alt="当前二维码">' +
-                    '<p class="label">当前使用中的二维码</p>';
+                container.textContent = "";
+                var img = document.createElement("img");
+                img.src = "data:image/png;base64," + data.content.replace(/\n/g, "");
+                img.alt = "当前二维码";
+                var label = document.createElement("p");
+                label.className = "label";
+                label.textContent = "当前使用中的二维码";
+                container.appendChild(img);
+                container.appendChild(label);
             })
             .catch(function () {
-                container.innerHTML = '<p style="color:#ff6b8a;font-size:13px;">加载失败</p>';
+                container.textContent = "";
+                var errP = document.createElement("p");
+                errP.style.cssText = "color:#ff6b8a;font-size:13px;";
+                errP.textContent = "加载失败";
+                container.appendChild(errP);
             });
     }
 
