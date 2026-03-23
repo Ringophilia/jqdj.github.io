@@ -2,17 +2,17 @@
     "use strict";
 
     // ========== 安全配置 ==========
-    const MAX_LOGIN_ATTEMPTS = 5;
-    const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 分钟
-    const SESSION_TIMEOUT_MS = 30 * 60 * 1000;  // 30 分钟自动登出
-    const MAX_FILE_SIZE = 2 * 1024 * 1024;       // 2MB
-    const ALLOWED_TYPES = ["image/png", "image/jpeg"];
-    const QR_PATH = "assets/qrcode.png";
+    var REPO = "Ringophilia/jqdj.github.io";
+    var MAX_LOGIN_ATTEMPTS = 5;
+    var LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+    var SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+    var MAX_FILE_SIZE = 2 * 1024 * 1024;
+    var ALLOWED_TYPES = ["image/png", "image/jpeg"];
+    var QR_PATH = "assets/qrcode.png";
 
     // ========== 状态 ==========
-    let state = {
+    var state = {
         token: null,
-        repo: null,
         user: null,
         sessionStart: null,
         sessionTimer: null,
@@ -99,23 +99,16 @@
     }
 
     // ========== 登录 ==========
-    window.handleLogin = function () {
+    function handleLogin() {
         if (isLockedOut()) {
             showMsg("login-msg", "登录尝试过多，请 " + getRemainingLockout() + " 分钟后再试", "error");
             return;
         }
 
-        var repo = document.getElementById("repo-input").value.trim();
         var token = document.getElementById("token-input").value.trim();
 
-        if (!repo || !token) {
-            showMsg("login-msg", "请填写仓库地址和 Token", "error");
-            return;
-        }
-
-        // 基本格式校验
-        if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repo)) {
-            showMsg("login-msg", "仓库格式不正确，应为 owner/repo", "error");
+        if (!token) {
+            showMsg("login-msg", "请输入 Token", "error");
             return;
         }
 
@@ -130,12 +123,10 @@
         showMsg("login-msg", "正在验证权限...", "info");
 
         state.token = token;
-        state.repo = repo;
 
-        // 验证 token 有效性 + 仓库写权限
         Promise.all([
             ghFetch("/user"),
-            ghFetch("/repos/" + repo)
+            ghFetch("/repos/" + REPO)
         ]).then(function (responses) {
             if (!responses[0].ok) throw new Error("Token 无效");
             if (!responses[1].ok) throw new Error("无法访问该仓库");
@@ -152,14 +143,11 @@
             state.sessionStart = Date.now();
             clearLoginAttempts();
 
-            // 清空输入
             document.getElementById("token-input").value = "";
-            document.getElementById("repo-input").value = "";
 
             showAdminView();
         }).catch(function (err) {
             state.token = null;
-            state.repo = null;
             var attempt = recordFailedAttempt();
             var remaining = MAX_LOGIN_ATTEMPTS - (attempt.count || 0);
             var msg = err.message || "登录失败";
@@ -173,14 +161,13 @@
             btn.disabled = false;
             btn.textContent = "验证并登录";
         });
-    };
+    }
 
     // ========== 管理界面 ==========
     function showAdminView() {
         document.getElementById("login-view").classList.add("hidden");
         document.getElementById("admin-view").classList.remove("hidden");
 
-        // 显示用户信息
         var userInfoEl = document.getElementById("user-info");
         userInfoEl.textContent = "";
         var avatar = document.createElement("img");
@@ -198,10 +185,7 @@
         userInfoEl.appendChild(avatar);
         userInfoEl.appendChild(infoDiv);
 
-        // 会话倒计时
         startSessionTimer();
-
-        // 加载当前二维码
         loadCurrentQR();
     }
 
@@ -224,7 +208,7 @@
 
     function loadCurrentQR() {
         var container = document.getElementById("current-qr");
-        ghFetch("/repos/" + state.repo + "/contents/" + QR_PATH)
+        ghFetch("/repos/" + REPO + "/contents/" + QR_PATH)
             .then(function (res) {
                 if (res.status === 404) {
                     container.textContent = "";
@@ -263,6 +247,10 @@
     var uploadZone = document.getElementById("upload-zone");
     var fileInput = document.getElementById("file-input");
 
+    uploadZone.addEventListener("click", function () {
+        fileInput.click();
+    });
+
     uploadZone.addEventListener("dragover", function (e) {
         e.preventDefault();
         uploadZone.classList.add("dragover");
@@ -289,19 +277,16 @@
     function processFile(file) {
         hideMsg("upload-msg");
 
-        // 文件类型校验
         if (ALLOWED_TYPES.indexOf(file.type) === -1) {
             showMsg("upload-msg", "仅支持 PNG 和 JPG 格式", "error");
             return;
         }
 
-        // 文件大小校验
         if (file.size > MAX_FILE_SIZE) {
             showMsg("upload-msg", "文件大小不能超过 2MB", "error");
             return;
         }
 
-        // 图片内容校验（magic bytes）
         var reader = new FileReader();
         reader.onload = function (e) {
             var arr = new Uint8Array(e.target.result).subarray(0, 4);
@@ -310,13 +295,11 @@
                 header += arr[i].toString(16).padStart(2, "0");
             }
 
-            // PNG: 89504e47, JPEG: ffd8ff
             if (header.indexOf("89504e47") !== 0 && header.indexOf("ffd8ff") !== 0) {
                 showMsg("upload-msg", "文件内容不是有效的图片格式", "error");
                 return;
             }
 
-            // 读取为 base64 预览
             var previewReader = new FileReader();
             previewReader.onload = function (pe) {
                 state.pendingFile = pe.target.result;
@@ -329,21 +312,20 @@
         reader.readAsArrayBuffer(file);
     }
 
-    window.cancelUpload = function () {
+    function cancelUpload() {
         state.pendingFile = null;
         document.getElementById("preview-area").style.display = "none";
         uploadZone.style.display = "";
         fileInput.value = "";
-    };
+    }
 
-    window.handleUpload = function () {
+    function handleUpload() {
         if (!state.pendingFile || !state.token) return;
 
         var btn = document.getElementById("upload-btn");
         btn.disabled = true;
         btn.textContent = "上传中...";
 
-        // 提取 base64 内容（去掉 data:image/xxx;base64, 前缀）
         var base64 = state.pendingFile.split(",")[1];
 
         var body = {
@@ -356,7 +338,7 @@
             body.sha = state.existingSha;
         }
 
-        ghFetch("/repos/" + state.repo + "/contents/" + QR_PATH, {
+        ghFetch("/repos/" + REPO + "/contents/" + QR_PATH, {
             method: "PUT",
             body: body
         })
@@ -381,12 +363,11 @@
             btn.disabled = false;
             btn.textContent = "确认上传";
         });
-    };
+    }
 
     // ========== 登出 ==========
-    window.handleLogout = function () {
+    function handleLogout() {
         state.token = null;
-        state.repo = null;
         state.user = null;
         state.pendingFile = null;
         state.existingSha = null;
@@ -400,17 +381,22 @@
         document.getElementById("admin-view").classList.add("hidden");
         document.getElementById("login-view").classList.remove("hidden");
         hideMsg("login-msg");
-    };
+    }
+
+    // ========== 绑定事件 ==========
+    document.getElementById("login-btn").addEventListener("click", handleLogin);
+    document.getElementById("cancel-btn").addEventListener("click", cancelUpload);
+    document.getElementById("upload-btn").addEventListener("click", handleUpload);
+    document.getElementById("logout-btn").addEventListener("click", handleLogout);
 
     // ========== 页面关闭时清理 ==========
     window.addEventListener("beforeunload", function () {
         state.token = null;
-        state.repo = null;
     });
 
     // ========== 防止在 iframe 中加载 ==========
     if (window.top !== window.self) {
-        document.body.innerHTML = "<p style='color:red;padding:40px;'>禁止在 iframe 中加载此页面</p>";
+        document.body.textContent = "禁止在 iframe 中加载此页面";
     }
 
 })();

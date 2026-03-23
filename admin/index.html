@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://avatars.githubusercontent.com; script-src 'self'; connect-src https://api.github.com; font-src 'self'">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <title>管理后台 - 机枪电竞</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -283,15 +282,11 @@
             <div class="card">
                 <h2>管理员登录</h2>
                 <div class="field">
-                    <label for="repo-input">GitHub 仓库（owner/repo）</label>
-                    <input type="text" id="repo-input" placeholder="例如: myorg/Application_webpage" autocomplete="off" spellcheck="false">
-                </div>
-                <div class="field">
                     <label for="token-input">GitHub Personal Access Token</label>
                     <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
                     <p class="help-text">需要 repo 权限的 PAT。Token 仅在当前会话中使用，关闭页面后自动清除。</p>
                 </div>
-                <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">验证并登录</button>
+                <button class="btn btn-primary" id="login-btn">验证并登录</button>
                 <div id="login-msg" class="msg"></div>
             </div>
         </div>
@@ -312,7 +307,7 @@
 
             <div class="card">
                 <h2>上传新二维码</h2>
-                <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                <div class="upload-zone" id="upload-zone">
                     <div>
                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ffb6c1" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     </div>
@@ -325,8 +320,8 @@
                     <img id="preview-img" alt="预览">
                     <p class="preview-label">新二维码预览</p>
                     <div class="actions">
-                        <button class="btn btn-secondary" onclick="cancelUpload()">取消</button>
-                        <button class="btn btn-primary" id="upload-btn" onclick="handleUpload()">确认上传</button>
+                        <button class="btn btn-secondary" id="cancel-btn">取消</button>
+                        <button class="btn btn-primary" id="upload-btn">确认上传</button>
                     </div>
                 </div>
 
@@ -334,7 +329,7 @@
             </div>
 
             <div class="card">
-                <button class="btn btn-danger" onclick="handleLogout()">退出登录</button>
+                <button class="btn btn-danger" id="logout-btn">退出登录</button>
             </div>
         </div>
     </div>
