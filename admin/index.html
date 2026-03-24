@@ -72,6 +72,25 @@
             margin-bottom: 6px;
         }
 
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: #fff9fa;
+            border: 1px solid #ffd6e0;
+            border-radius: 8px;
+            color: #4a3347;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            border-color: #ff85a2;
+            box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.1);
+        }
+
         input[type="password"],
         input[type="text"] {
             width: 100%;
@@ -280,7 +299,7 @@
     <div class="top-bar"></div>
     <div class="container">
         <h1>管理后台</h1>
-        <p class="subtitle">机枪电竞 - 二维码管理</p>
+        <p class="subtitle">机枪电竞 - 内容管理</p>
 
         <!-- 登录界面 -->
         <div id="login-view">
@@ -301,6 +320,28 @@
             <div class="card">
                 <div class="user-info" id="user-info"></div>
                 <div class="session-timer" id="session-timer"></div>
+            </div>
+
+            <div class="card">
+                <h2>编辑文案</h2>
+                <div class="field">
+                    <label for="content-about">关于我们</label>
+                    <textarea id="content-about" rows="4" placeholder="俱乐部介绍文案"></textarea>
+                </div>
+                <div class="field">
+                    <label for="content-phone">联系电话</label>
+                    <input type="text" id="content-phone" placeholder="联系电话">
+                </div>
+                <div class="field">
+                    <label for="content-email">邮箱地址</label>
+                    <input type="text" id="content-email" placeholder="邮箱地址">
+                </div>
+                <div class="field">
+                    <label for="content-wechat">微信号</label>
+                    <input type="text" id="content-wechat" placeholder="微信号">
+                </div>
+                <button class="btn btn-primary" id="save-content-btn">保存文案</button>
+                <div id="content-msg" class="msg"></div>
             </div>
 
             <div class="card">

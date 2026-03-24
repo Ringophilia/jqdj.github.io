@@ -9,6 +9,7 @@
     var MAX_FILE_SIZE = 2 * 1024 * 1024;
     var ALLOWED_TYPES = ["image/png", "image/jpeg"];
     var QR_PATH = "assets/qrcode.png";
+    var CONTENT_PATH = "assets/content.json";
 
     // ========== 状态 ==========
     var state = {
@@ -17,7 +18,8 @@
         sessionStart: null,
         sessionTimer: null,
         pendingFile: null,
-        existingSha: null
+        existingSha: null,
+        contentSha: null
     };
 
     // ========== 登录限流（localStorage） ==========
@@ -187,6 +189,7 @@
 
         startSessionTimer();
         loadCurrentQR();
+        loadContent();
     }
 
     function startSessionTimer() {
@@ -241,6 +244,81 @@
                 errP.textContent = "加载失败";
                 container.appendChild(errP);
             });
+    }
+
+    // ========== 文案管理 ==========
+    function loadContent() {
+        ghFetch("/repos/" + REPO + "/contents/" + CONTENT_PATH)
+            .then(function (res) {
+                if (res.status === 404) {
+                    state.contentSha = null;
+                    return null;
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (!data) return;
+                state.contentSha = data.sha;
+                var content = JSON.parse(atob(data.content.replace(/\n/g, "")));
+                document.getElementById("content-about").value = content.about || "";
+                document.getElementById("content-phone").value = content.phone || "";
+                document.getElementById("content-email").value = content.email || "";
+                document.getElementById("content-wechat").value = content.wechat || "";
+            })
+            .catch(function () {
+                showMsg("content-msg", "加载文案失败", "error");
+            });
+    }
+
+    function handleSaveContent() {
+        if (!state.token) return;
+
+        var content = {
+            about: document.getElementById("content-about").value.trim(),
+            phone: document.getElementById("content-phone").value.trim(),
+            email: document.getElementById("content-email").value.trim(),
+            wechat: document.getElementById("content-wechat").value.trim()
+        };
+
+        var btn = document.getElementById("save-content-btn");
+        btn.disabled = true;
+        btn.textContent = "保存中...";
+
+        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + "\n")));
+
+        var body = {
+            message: "更新首页文案 - by " + state.user.login,
+            content: encoded,
+            branch: "main"
+        };
+
+        if (state.contentSha) {
+            body.sha = state.contentSha;
+        }
+
+        ghFetch("/repos/" + REPO + "/contents/" + CONTENT_PATH, {
+            method: "PUT",
+            body: body
+        })
+        .then(function (res) {
+            if (!res.ok) {
+                return res.json().then(function (d) {
+                    throw new Error(d.message || "保存失败");
+                });
+            }
+            return res.json();
+        })
+        .then(function (data) {
+            state.contentSha = data.content.sha;
+            showMsg("content-msg", "文案保存成功！GitHub Pages 将在几分钟内自动部署。", "success");
+        })
+        .catch(function (err) {
+            showMsg("content-msg", "保存失败：" + err.message, "error");
+        })
+        .finally(function () {
+            btn.disabled = false;
+            btn.textContent = "保存文案";
+        });
     }
 
     // ========== 文件上传 ==========
@@ -371,6 +449,7 @@
         state.user = null;
         state.pendingFile = null;
         state.existingSha = null;
+        state.contentSha = null;
         state.sessionStart = null;
 
         if (state.sessionTimer) {
@@ -388,6 +467,7 @@
     document.getElementById("cancel-btn").addEventListener("click", cancelUpload);
     document.getElementById("upload-btn").addEventListener("click", handleUpload);
     document.getElementById("logout-btn").addEventListener("click", handleLogout);
+    document.getElementById("save-content-btn").addEventListener("click", handleSaveContent);
 
     // ========== 页面关闭时清理 ==========
     window.addEventListener("beforeunload", function () {
