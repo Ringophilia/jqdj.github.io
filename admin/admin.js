@@ -259,7 +259,7 @@
             .then(function (data) {
                 if (!data) return;
                 state.contentSha = data.sha;
-                var content = JSON.parse(atob(data.content.replace(/\n/g, "")));
+                var content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, "")))));
                 document.getElementById("content-about").value = content.about || "";
                 document.getElementById("content-phone").value = content.phone || "";
                 document.getElementById("content-email").value = content.email || "";
@@ -459,7 +459,12 @@
 
         document.getElementById("admin-view").classList.add("hidden");
         document.getElementById("login-view").classList.remove("hidden");
+        document.getElementById("content-about").value = "";
+        document.getElementById("content-phone").value = "";
+        document.getElementById("content-email").value = "";
+        document.getElementById("content-wechat").value = "";
         hideMsg("login-msg");
+        hideMsg("content-msg");
     }
 
     // ========== 绑定事件 ==========
