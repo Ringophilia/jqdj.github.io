@@ -8,7 +8,9 @@
 ├── index.html          # 展示首页
 ├── bg.js               # 背景装饰动画
 ├── logo.webp           # 俱乐部 Logo（192x192 webp）
+├── content.js          # 首页文案动态加载
 ├── assets/
+│   ├── content.json    # 首页文案内容（由管理后台编辑）
 │   └── qrcode.png      # 微信二维码（由管理后台上传）
 ├── favicon/            # 网站图标
 │   ├── favicon.ico
@@ -26,7 +28,7 @@
 ## 功能
 
 - 俱乐部信息展示（介绍、联系方式、微信二维码）
-- 管理后台通过 GitHub API 上传/更新微信二维码，无需后端服务器
+- 管理后台通过 GitHub API 编辑首页文案、上传/更新微信二维码，无需后端服务器
 - 浮动爱心、星星背景动画 + 卡片入场动效 + hover 放大效果
 
 ## 部署
@@ -36,13 +38,9 @@
 3. Source 选 `Deploy from a branch`，Branch 选 `main` / `/ (root)`
 4. 保存后等待 1-2 分钟即可访问
 
-## 自定义内容
-
-编辑 `index.html` 中带有 `placeholder` 类名的文案，替换为你自己的俱乐部介绍和联系方式。
-
 ## 管理后台使用
 
-管理后台用于更新微信二维码图片，访问路径为 `/admin/`。
+管理后台用于编辑首页文案（关于我们、联系方式）和更新微信二维码图片，访问路径为 `/admin/`。
 
 仓库地址已硬编码为 `Ringophilia/jqdj.github.io`，管理员只需输入 Token 即可登录。
 
@@ -55,8 +53,8 @@
 
 1. 访问 `https://你的域名/admin/`
 2. 输入 Personal Access Token
-3. 登录后可查看当前二维码，上传新的二维码图片
-4. 上传后 GitHub Pages 会在 1-2 分钟内自动部署更新
+3. 登录后可编辑首页文案（关于我们、电话、邮箱、微信），上传新的二维码图片
+4. 保存后 GitHub Pages 会在 1-2 分钟内自动部署更新
 
 ### 生成 Personal Access Token
 
